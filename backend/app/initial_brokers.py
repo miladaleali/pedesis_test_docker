@@ -12,7 +12,6 @@ if __name__ == '__main__':
     data_types = [
         DataType.Future,
         DataType.Spot,
-        DataType.FutureDelivery,
     ]
 
     for src in settings.installed_data_sources.values():
