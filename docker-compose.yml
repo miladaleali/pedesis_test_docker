@@ -74,6 +74,26 @@ services:
             - 5678:5678
         restart: on-failure
 
+    notebook:
+        build:
+            context: ./backend
+            dockerfile: backend.dockerfile
+            target: notebook
+            args:
+              GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
+        depends_on:
+            celery:
+              condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            - REDIS_HOST=redis_memory
+            - RABBITMQ_HOST=rabbitmq
+            - POSTGRES_HOST=db
+        ports:  
+            - 8001:8888
+        restart: on-failure
+
     celery:
         build:
             context: ./backend
