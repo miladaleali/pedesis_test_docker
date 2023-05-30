@@ -1,0 +1,197 @@
+version: '3.8'
+
+services:
+
+    redis_memory:
+        image: redis:alpine
+        ports:
+            - "6379:6379"
+        healthcheck:
+          test: redis-cli ping
+          interval: 10s
+          timeout: 5s
+          retries: 3
+        restart: always
+
+    rabbitmq:
+        image: rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        healthcheck:
+          test: rabbitmq-diagnostics -q ping
+          interval: 10s
+          timeout: 5s
+          retries: 3
+        restart: always
+
+    db:
+        image: postgres:15.1-alpine
+        ports:
+            - "5432:5432"
+        env_file:
+            - .env
+        environment:
+            - PGDATA=/var/lib/postgresql/data/pgdata
+        volumes:
+            - ./data:/var/lib/postgresql/data/pgdata
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: on-failure
+
+    pgadmin:
+        image: dpage/pgadmin4
+        depends_on:
+            db:
+              condition: service_healthy
+        env_file:
+            - .env
+        ports:
+            - "5050:80"
+
+    backend:
+        build:
+            context: ./backend
+            dockerfile: backend.dockerfile
+            target: prod
+            args:
+              GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
+        depends_on:
+            celery:
+              condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            - REDIS_HOST=redis_memory
+            - RABBITMQ_HOST=rabbitmq
+            - POSTGRES_HOST=db
+        volumes:
+            - ./backend/app:/app
+        ports:  
+            - 5678:5678
+        restart: on-failure
+
+    celery:
+        build:
+            context: ./backend
+            dockerfile: celeryworker.dockerfile
+            target: prod
+            args:
+              GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
+        depends_on:
+            redis_memory:
+              condition: service_healthy
+            rabbitmq:
+              condition: service_healthy
+            db:
+              condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            - REDIS_HOST=redis_memory
+            - RABBITMQ_HOST=rabbitmq
+            - POSTGRES_HOST=db
+            - C_FORCE_ROOT=true
+            - CELERY_BROKER_URL=amqp://rabbitmq:5672
+            - CELERY_RESULT_BACKEND=redis://redis_memory:6379/1
+        ports:
+            - 5679:5679
+        healthcheck:
+          test: celery -A pedesis.tasks_manager:manager inspect ping
+          interval: 30s
+          timeout: 10s
+          retries: 5
+        restart: always
+
+    flower:
+      build:
+          context: ./backend
+          dockerfile: celeryworker.dockerfile
+          target: flower
+          args:
+            GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
+            FLOWER_PORT: 5555
+      env_file:
+          - .env
+      environment:
+          - CELERY_BROKER_URL="amqp://rabbitmq:5672"
+          - CELERY_BROKER_TRANSPORT_URL="amqp://rabbitmq:5672"
+          - CELERY_RESULT_BACKEND="redis://redis_memory:6379/1"
+          - C_FORCE_ROOT=true
+      depends_on:
+          celery:
+            condition: service_healthy
+      ports:
+        - 5555:5555
+      volumes:
+        - flower-data:/data
+      command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
+
+    prometheus:
+      image: prom/prometheus:latest
+      container_name: prometheus
+      ports:
+        - 9090:9090
+      volumes:
+        - ./prometheus:/etc/prometheus
+        - prometheus-data:/prometheus
+      command: "--config.file=/etc/prometheus/prometheus.yml"
+      restart: unless-stopped
+
+    node_exporter:
+      image: quay.io/prometheus/node-exporter:v1.5.0
+      container_name: node_exporter
+      command: "--path.rootfs=/host"
+      pid: host
+      restart: unless-stopped
+      volumes:
+        - /:/host:ro,rslave
+
+    cadvisor:
+      image: gcr.io/cadvisor/cadvisor:latest
+      container_name: cadvisor
+      ports:
+      - 8080:8080
+      volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      depends_on:
+      - redis_memory
+
+    grafana:
+      image: grafana/grafana-oss:latest
+      container_name: grafana
+      ports:
+        - "3000:3000"
+      volumes:
+        - grafana-data:/var/lib/grafana
+      restart: unless-stopped
+
+    portainer:
+      container_name: portainer
+      image: portainer/portainer-ce:latest
+      ports:
+        - 9000:9000
+        - 9443:9443
+        - 8000:8000
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - portainer-data:/data
+      restart: unless-stopped
+
+volumes:
+    data:
+      driver: local
+    flower-data:
+      driver: local
+    prometheus-data:
+        driver: local
+    grafana-data:
+      driver: local
+    portainer-data:
+      driver: local
