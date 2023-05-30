@@ -37,3 +37,8 @@ COPY ./app/station-start.sh /station-start.sh
 RUN chmod +x /station-start.sh
 
 CMD bash /station-start.sh
+
+######################## START NEW IMAGE: NOTEBOOK ##########################
+FROM base as notebook
+RUN pip install notebook
+CMD python -m notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
