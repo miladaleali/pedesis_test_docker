@@ -8,6 +8,7 @@ alembic upgrade head
 
 # Create initial data in DB
 # python /app/app/initial_data.py
+python initial_brokers.py
 
 # Run station
 python manage.py run station
