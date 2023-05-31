@@ -11,6 +11,8 @@ services:
           interval: 10s
           timeout: 5s
           retries: 3
+        volumes:
+          - ./redis-data:/data
         restart: always
 
     rabbitmq:
@@ -121,6 +123,7 @@ services:
             - 5679:5679
         volumes:
             - ./celery-back-datas:/app/back_datas
+            - ./celery_files:/app/celery_files
         healthcheck:
           test: celery -A pedesis.tasks_manager:manager inspect ping
           interval: 30s
@@ -210,6 +213,10 @@ volumes:
     data:
       driver: local
     celery-back-datas:
+      driver: local
+    celery_files:
+      driver: local
+    redis-data:
       driver: local
     flower-data:
       driver: local
