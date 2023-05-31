@@ -70,7 +70,7 @@ services:
             - POSTGRES_HOST=db
         volumes:
             - ./backend/app:/app
-        ports:  
+        ports:
             - 5678:5678
         restart: on-failure
 
@@ -119,6 +119,8 @@ services:
             - CELERY_RESULT_BACKEND=redis://redis_memory:6379/1
         ports:
             - 5679:5679
+        volumes:
+            - ./celery-back-datas:/app/back_datas
         healthcheck:
           test: celery -A pedesis.tasks_manager:manager inspect ping
           interval: 30s
@@ -206,6 +208,8 @@ services:
 
 volumes:
     data:
+      driver: local
+    celery-back-datas:
       driver: local
     flower-data:
       driver: local
