@@ -4,9 +4,9 @@ from pedesis.components.signal_engine import models
 from pedesis.conf.global_settings import EngineSettings
 
 settings = EngineSettings(
-    name='swing_long_bollinger_bands',
+    name='swing_short_bollinger_bands',
     run_mode='live',
-    folder_name='swing_long_bollinger_bands',
+    folder_name='swing_short_bollinger_bands',
     mode=models.EngineMode.Scalp,
     native_broker='pedesis.components.broker.templates.okx',
     market=models.DataType.Future,

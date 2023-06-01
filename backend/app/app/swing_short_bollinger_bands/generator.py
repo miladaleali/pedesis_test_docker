@@ -5,7 +5,7 @@ from pedesis.conf.global_settings import EngineSettings
 
 from . import generator_settings as settings
 
-class SwingLongBollingerBands(base.Generator):
+class SwingShortBollingerBands(base.Generator):
     EXPECTED_INVESTMENT_TIME = 24 * 60
     SETTINGS = settings.Settings
     TIMEFRAME: str = '1h'
@@ -26,10 +26,10 @@ class SwingLongBollingerBands(base.Generator):
         self.main_data: base.pd.DataFrame = None
 
     def signal_logic(self) -> bool:
-        if self.main_data.close[-1] > self.trend[-1]:
+        if self.main_data.close[-1] < self.trend[-1]:
             if (
-               base.speedy_cross(self.main_data.close, self.bbs.mid) or
-               base.speedy_cross(self.main_data.close, self.bbs.lower)
+               base.speedy_cross(self.main_data.close, self.bbs.mid, False) or
+               base.speedy_cross(self.main_data.close, self.bbs.upper, False)
                ):
                 return True
         return False

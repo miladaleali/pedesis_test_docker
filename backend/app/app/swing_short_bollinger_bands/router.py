@@ -25,7 +25,7 @@ data_handler = DataHandlerAssembly(
 
 # define stream processors
 gen1 = StreamProcessorMaker(
-    processor=gen.SwingLongBollingerBands,
+    processor=gen.SwingShortBollingerBands,
     engine=settings,
     input_=data_handler
 )

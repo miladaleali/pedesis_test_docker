@@ -25,7 +25,7 @@ data_handler = DataHandlerAssembly(
 
 # define stream processors
 gen1 = StreamProcessorMaker(
-    processor=gen.generators.ScalpShortMacd,
+    processor=gen.ScalpShortMacd,
     engine=settings,
     input_=data_handler
 )
