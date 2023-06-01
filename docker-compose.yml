@@ -152,7 +152,7 @@ services:
       ports:
         - 5555:5555
       volumes:
-        - flower-data:/data
+        - ./flower-data:/data
       command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
 
     prometheus:
@@ -162,7 +162,7 @@ services:
         - 9090:9090
       volumes:
         - ./prometheus:/etc/prometheus
-        - prometheus-data:/prometheus
+        - ./prometheus-data:/prometheus
       command: "--config.file=/etc/prometheus/prometheus.yml"
       restart: unless-stopped
 
@@ -206,7 +206,7 @@ services:
         - 8000:8000
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
-        - portainer-data:/data
+        - ./portainer-data:/data
       restart: unless-stopped
 
 volumes:
