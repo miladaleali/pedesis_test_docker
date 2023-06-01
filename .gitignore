@@ -232,3 +232,11 @@ pip-selfcheck.json
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
+celery-back-datas
+celery-back-datas/
+celery_files
+celery_files/
+data
+data/
+flower-data
+flower-data/
