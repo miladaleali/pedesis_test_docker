@@ -254,8 +254,10 @@ def upgrade() -> None:
     op.create_table('srl',
                     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
                     sa.Column('signal_engine_signature', sa.String(), nullable=False),
+                    sa.Column('uni_symbol_id', sa.Integer(), nullable=True),
                     sa.Column('timeframe', sa.String(), nullable=True),
                     sa.Column('calculator', sa.String(), nullable=True),
+                    sa.ForeignKeyConstraint(['uni_symbol_id'], ['uni_symbol.id'], onupdate='CASCADE', ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id'),
                     sa.UniqueConstraint('id')
                     )
