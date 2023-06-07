@@ -9,6 +9,7 @@ COPY ./app /app
 ENV PYTHONPATH=/app
 
 RUN pip install git+https://${GIT_TOKEN_PEDESIS}@github.com/miladaleali/pedesis.git
+RUN pip install tqdm
 ######################## START NEW BASE IMAGE: PRE PRODUCTION ############################
 # FROM base as prod_base
 
