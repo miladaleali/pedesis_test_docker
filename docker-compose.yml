@@ -140,16 +140,16 @@ services:
             - "5672:5672"
             - "15672:15672"
         healthcheck:
+          test: rabbitmq-diagnostics -q ping
+          interval: 10s
+          timeout: 5s
+          retries: 3
         logging:
           driver: "json-file"
           options:
             max-size: "10m"
             max-file: "50"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-          test: rabbitmq-diagnostics -q ping
-          interval: 10s
-          timeout: 5s
-          retries: 3
         restart: always
 
     db:
