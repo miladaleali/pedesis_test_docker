@@ -62,6 +62,7 @@ services:
         - 50000:50000/tcp
         - 50000:50000/udp
         - 9600:9600
+        - 12201:12201/udp
       environment:
         LS_JAVA_OPTS: -Xms256m -Xmx256m
         LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
@@ -84,37 +85,6 @@ services:
         - elasticsearch
       restart: unless-stopped
 
-    filebeat:
-      build:
-        context: extensions/filebeat/
-        args:
-          ELASTIC_VERSION: ${ELASTIC_VERSION}
-      # Run as 'root' instead of 'filebeat' (uid 1000) to allow reading
-      # 'docker.sock' and the host's filesystem.
-      user: root
-      command:
-        # Log to stderr.
-        - -e
-        # Disable config file permissions checks. Allows mounting
-        # 'config/filebeat.yml' even if it's not owned by root.
-        # see: https://www.elastic.co/guide/en/beats/libbeat/current/config-file-permissions.html
-        - --strict.perms=false
-      volumes:
-        - ./extensions/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
-        - type: bind
-          source: /var/lib/docker/containers
-          target: /var/lib/docker/containers
-          read_only: true
-        - type: bind
-          source: /var/run/docker.sock
-          target: /var/run/docker.sock
-          read_only: true
-      environment:
-        FILEBEAT_INTERNAL_PASSWORD: ${FILEBEAT_INTERNAL_PASSWORD:-}
-        BEATS_SYSTEM_PASSWORD: ${BEATS_SYSTEM_PASSWORD:-}
-      depends_on:
-        - elasticsearch
-
     redis_memory:
         image: redis:alpine
         ports:
@@ -127,10 +97,9 @@ services:
         volumes:
           - redis-data:/data
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
@@ -145,10 +114,9 @@ services:
           timeout: 5s
           retries: 3
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
@@ -168,10 +136,9 @@ services:
             timeout: 5s
             retries: 5
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
@@ -183,10 +150,9 @@ services:
         env_file:
             - .env
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         ports:
             - "5050:80"
@@ -212,10 +178,9 @@ services:
         ports:
             - 5678:5678
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
@@ -237,6 +202,11 @@ services:
             - POSTGRES_HOST=db
         ports:  
             - 8001:8888
+        logging:
+          driver: "gelf"
+          options:
+            gelf-address: "udp://logstash:12201"
+            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
     celery:
@@ -273,10 +243,9 @@ services:
           timeout: 10s
           retries: 5
         logging:
-          driver: "json-file"
+          driver: "gelf"
           options:
-            max-size: "10m"
-            max-file: "50"
+            gelf-address: "udp://logstash:12201"
             tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
@@ -303,6 +272,11 @@ services:
       volumes:
         - ./flower-data:/data
       command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     prometheus:
       image: prom/prometheus:latest
@@ -313,6 +287,12 @@ services:
         - ./prometheus:/etc/prometheus
         - prometheus-data:/prometheus
       command: "--config.file=/etc/prometheus/prometheus.yml"
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
+
       restart: unless-stopped
 
     node_exporter:
@@ -323,6 +303,11 @@ services:
       restart: unless-stopped
       volumes:
         - /:/host:ro,rslave
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     cadvisor:
       image: gcr.io/cadvisor/cadvisor:latest
@@ -336,6 +321,11 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       depends_on:
       - redis_memory
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     grafana:
       image: grafana/grafana-oss:latest
@@ -345,6 +335,11 @@ services:
       volumes:
         - grafana-data:/var/lib/grafana
       restart: unless-stopped
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     portainer:
       container_name: portainer
@@ -357,6 +352,11 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
         - portainer-data:/data
       restart: unless-stopped
+      logging:
+        driver: "gelf"
+        options:
+          gelf-address: "udp://logstash:12201"
+          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
 volumes:
     data:
