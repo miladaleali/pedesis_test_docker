@@ -75,11 +75,6 @@ services:
           retries: 3
         volumes:
           - redis-data:/data
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
     rabbitmq:
@@ -95,11 +90,6 @@ services:
           interval: 10s
           timeout: 5s
           retries: 3
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
     db:
@@ -120,11 +110,6 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
     pgadmin:
@@ -136,11 +121,6 @@ services:
               condition: service_healthy
         env_file:
             - .env
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         ports:
             - "5050:80"
 
@@ -167,11 +147,6 @@ services:
             - ./backend/app:/app
         ports:
             - 5678:5678
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
     notebook:
@@ -194,11 +169,6 @@ services:
             - POSTGRES_HOST=db
         ports:  
             - 8001:8888
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: on-failure
 
     celery:
@@ -237,11 +207,6 @@ services:
           interval: 30s
           timeout: 10s
           retries: 5
-        logging:
-          driver: "gelf"
-          options:
-            gelf-address: "udp://logstash:12201"
-            tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
         restart: always
 
     flower:
@@ -269,11 +234,6 @@ services:
       volumes:
         - ./flower-data:/data
       command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     prometheus:
       profiles:
@@ -286,11 +246,6 @@ services:
         - ./prometheus:/etc/prometheus
         - prometheus-data:/prometheus
       command: "--config.file=/etc/prometheus/prometheus.yml"
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
       restart: unless-stopped
 
     node_exporter:
@@ -303,11 +258,6 @@ services:
       restart: unless-stopped
       volumes:
         - /:/host:ro,rslave
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     cadvisor:
       profiles:
@@ -323,11 +273,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       depends_on:
       - redis_memory
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     grafana:
       profiles:
@@ -339,11 +284,6 @@ services:
       volumes:
         - grafana-data:/var/lib/grafana
       restart: unless-stopped
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     portainer:
       profiles:
@@ -358,11 +298,6 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock
         - portainer-data:/data
       restart: unless-stopped
-      logging:
-        driver: "gelf"
-        options:
-          gelf-address: "udp://logstash:12201"
-          tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
 volumes:
     data:
