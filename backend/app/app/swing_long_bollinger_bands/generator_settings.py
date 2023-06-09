@@ -32,11 +32,18 @@ class Logic(base.GeneratorLogicSetting):
                 return base.calculate_ema(datas, self.trend_source, self.trend_length)
 
 
-logic = Logic()
+class LayeredLogic(base.LayerGeneratorLogicSetting):
+    template_name: str = 'swing_long_bollinger_bands'
+    main: Logic = Logic()
 
 data_req = base.OhlcvStreamDataRequest(timeframe='1h')
 
-input_ = base.GeneratorInputSetting(request=data_req)
+class InputSetting(base.GeneratorInputSetting):
+    request: base.OhlcvStreamDataRequest
+
+
+class layeredInput(base.LayerGeneratorInputSetting):
+    main: InputSetting = InputSetting(request=data_req)
 
 output_settings = base.GeneratorOutputSetting(
     signal_type=base.SignalType.Long,
@@ -50,6 +57,9 @@ output_settings = base.GeneratorOutputSetting(
         }
     )
 )
+
+logic = LayeredLogic()
+input_ = layeredInput()
 
 Settings = base.GeneratorSettings.safe_creation(
     template_name='swing_long_bollinger_bands',

@@ -20,6 +20,7 @@ okx = get_source(_OKX_SRC_PATH)
 # define data_handler setting like below
 data_handler = DataHandlerAssembly(
     data_source=okx.dbid,
+    section='main',
     market='future'
 )
 
@@ -27,7 +28,7 @@ data_handler = DataHandlerAssembly(
 gen1 = StreamProcessorMaker(
     processor=gen.ScalpShortMacd,
     engine=settings,
-    input_=data_handler
+    input_=[data_handler]
 )
 opt1 = StreamProcessorMaker(processor=opt.HighRiskOptimizer, engine=settings)
 pub1 = StreamProcessorMaker(processor=pub.SharpPublisher, engine=settings)
