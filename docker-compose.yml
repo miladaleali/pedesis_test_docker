@@ -2,90 +2,69 @@ version: '3.8'
 
 services:
 
-    setup:
-      profiles:
-        - setup
-      build:
-        context: setup_elk/
-        args:
-          ELASTIC_VERSION: ${ELASTIC_VERSION}
-      init: true
-      volumes:
-        - ./setup_elk/entrypoint.sh:/entrypoint.sh:ro,Z
-        - ./setup_elk/lib.sh:/lib.sh:ro,Z
-        - ./setup_elk/roles:/roles:ro,Z
-      environment:
-        ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
-        LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
-        KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
-        METRICBEAT_INTERNAL_PASSWORD: ${METRICBEAT_INTERNAL_PASSWORD:-}
-        FILEBEAT_INTERNAL_PASSWORD: ${FILEBEAT_INTERNAL_PASSWORD:-}
-        HEARTBEAT_INTERNAL_PASSWORD: ${HEARTBEAT_INTERNAL_PASSWORD:-}
-        MONITORING_INTERNAL_PASSWORD: ${MONITORING_INTERNAL_PASSWORD:-}
-        BEATS_SYSTEM_PASSWORD: ${BEATS_SYSTEM_PASSWORD:-}
-      depends_on:
-        - elasticsearch
+    es-node-01:
+        profiles:
+          - prod
+          - logs
+        container_name: es-node-01
+        ports:
+            - '9200:9200'
+            - '9300:9300'
+        environment:
+            - discovery.type=single-node
+        image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.0'
 
-    elasticsearch:
-      build:
-        context: elasticsearch/
-        args:
-          ELASTIC_VERSION: ${ELASTIC_VERSION}
-      volumes:
-        - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
-        - elasticsearch:/usr/share/elasticsearch/data:Z
-      ports:
-        - 9200:9200
-        - 9300:9300
-      environment:
-        node.name: elasticsearch
-        ES_JAVA_OPTS: -Xms512m -Xmx512m
-        # Bootstrap password.
-        # Used to initialize the keystore during the initial startup of
-        # Elasticsearch. Ignored on subsequent runs.
-        ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
-        # Use single node discovery in order to disable production mode and avoid bootstrap checks.
-        # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
-        discovery.type: single-node
-      restart: unless-stopped
+    kibana-01:
+        profiles:
+          - prod
+          - logs
+        container_name: kibana-01
+        ports:
+            - '5601:5601'
+        environment:
+            - 'ELASTICSEARCH_HOSTS=http://es-node-01:9200'
+        image: 'docker.elastic.co/kibana/kibana:7.17.0' 
+        healthcheck:
+            test: ["CMD", "curl", "-f", "kibana-01:5601"]
+            interval: 50s
+            timeout: 50s
+            retries: 5
+        depends_on:
+            - es-node-01
 
     logstash:
-      build:
-        context: logstash/
-        args:
-          ELASTIC_VERSION: ${ELASTIC_VERSION}
-      volumes:
-        - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
-        - ./logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
-      ports:
-        - 5044:5044
-        - 50000:50000/tcp
-        - 50000:50000/udp
-        - 9600:9600
-        - 12201:12201/udp
-      environment:
-        LS_JAVA_OPTS: -Xms256m -Xmx256m
-        LOGSTASH_INTERNAL_PASSWORD: ${LOGSTASH_INTERNAL_PASSWORD:-}
-      depends_on:
-        - elasticsearch
-      restart: unless-stopped
+        profiles:
+          - prod
+          - logs
+        container_name: logstash-01
+        volumes:
+            - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro 
+            - ./logstash/logstash.yaml:/usr/share/logstash/config/logstash.yml:ro 
+        image: 'docker.elastic.co/logstash/logstash:7.17.0'
+        depends_on:   
+             kibana-01:
+               condition: service_healthy  
 
-    kibana:
-      build:
-        context: kibana/
-        args:
-          ELASTIC_VERSION: ${ELASTIC_VERSION}
-      volumes:
-        - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
-      ports:
-        - 5601:5601
-      environment:
-        KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-}
-      depends_on:
-        - elasticsearch
-      restart: unless-stopped
+    filebeat:
+        profiles:
+          - prod
+          - logs
+        user: root
+        container_name: filebeat-01
+        command: --strict.perms=false
+        volumes:
+            - ./filebeat/filebeat.docker.yaml:/usr/share/filebeat/filebeat.yml:ro
+            - /var/lib/docker/containers:/var/lib/docker/containers:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        image: 'docker.elastic.co/beats/filebeat:7.17.0' 
+        depends_on:   
+             kibana-01:
+               condition: service_healthy
 
     redis_memory:
+        profiles:
+          - prod
+          - logs
         image: redis:alpine
         ports:
             - "6379:6379"
@@ -104,6 +83,9 @@ services:
         restart: always
 
     rabbitmq:
+        profiles:
+          - prod
+          - logs
         image: rabbitmq
         ports:
             - "5672:5672"
@@ -121,6 +103,9 @@ services:
         restart: always
 
     db:
+        profiles:
+          - prod
+          - logs
         image: postgres:15.1-alpine
         ports:
             - "5432:5432"
@@ -143,6 +128,8 @@ services:
         restart: on-failure
 
     pgadmin:
+        profiles:
+          - prod
         image: dpage/pgadmin4
         depends_on:
             db:
@@ -158,6 +145,9 @@ services:
             - "5050:80"
 
     backend:
+        profiles:
+          - prod
+          - logs
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -185,6 +175,8 @@ services:
         restart: on-failure
 
     notebook:
+        profiles:
+          - prod
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -210,6 +202,9 @@ services:
         restart: on-failure
 
     celery:
+        profiles:
+          - prod
+          - logs
         build:
             context: ./backend
             dockerfile: celeryworker.dockerfile
@@ -250,6 +245,8 @@ services:
         restart: always
 
     flower:
+      profiles:
+        - prod
       build:
           context: ./backend
           dockerfile: celeryworker.dockerfile
@@ -279,6 +276,8 @@ services:
           tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     prometheus:
+      profiles:
+        - prod
       image: prom/prometheus:latest
       container_name: prometheus
       ports:
@@ -292,10 +291,11 @@ services:
         options:
           gelf-address: "udp://logstash:12201"
           tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
-
       restart: unless-stopped
 
     node_exporter:
+      profiles:
+        - prod
       image: quay.io/prometheus/node-exporter:v1.5.0
       container_name: node_exporter
       command: "--path.rootfs=/host"
@@ -310,6 +310,8 @@ services:
           tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     cadvisor:
+      profiles:
+        - prod
       image: gcr.io/cadvisor/cadvisor:latest
       container_name: cadvisor
       ports:
@@ -328,6 +330,8 @@ services:
           tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     grafana:
+      profiles:
+        - prod
       image: grafana/grafana-oss:latest
       container_name: grafana
       ports:
@@ -342,6 +346,8 @@ services:
           tag: "{{.ImageName}}/{{.Name}}/{{.ID}}"
 
     portainer:
+      profiles:
+        - prod
       container_name: portainer
       image: portainer/portainer-ce:latest
       ports:
@@ -375,4 +381,3 @@ volumes:
       driver: local
     portainer-data:
       driver: local
-    elasticsearch:
