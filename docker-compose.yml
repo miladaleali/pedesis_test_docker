@@ -65,6 +65,7 @@ services:
         profiles:
           - prod
           - logs
+          - lab
         image: redis:alpine
         ports:
             - "6379:6379"
@@ -81,6 +82,7 @@ services:
         profiles:
           - prod
           - logs
+          - lab
         image: rabbitmq
         ports:
             - "5672:5672"
@@ -96,6 +98,7 @@ services:
         profiles:
           - prod
           - logs
+          - lab
         image: postgres:15.1-alpine
         ports:
             - "5432:5432"
@@ -115,6 +118,8 @@ services:
     pgadmin:
         profiles:
           - prod
+          - logs
+          - lab
         image: dpage/pgadmin4
         depends_on:
             db:
@@ -152,6 +157,7 @@ services:
     notebook:
         profiles:
           - prod
+          - lab
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -175,6 +181,7 @@ services:
         profiles:
           - prod
           - logs
+          - lab
         build:
             context: ./backend
             dockerfile: celeryworker.dockerfile
@@ -212,6 +219,7 @@ services:
     flower:
       profiles:
         - prod
+        - lab
       build:
           context: ./backend
           dockerfile: celeryworker.dockerfile
