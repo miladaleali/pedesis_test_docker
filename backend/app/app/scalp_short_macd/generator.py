@@ -26,6 +26,6 @@ class ScalpShortMacd(base.Generator):
         self.main_data: base.pd.DataFrame = None
 
     def signal_logic(self) -> bool:
-        if self.main_data.close[-1] < self.trend[-1]:
+        if self.main_data.close.iloc[-1] < self.trend.iloc[-1]:
             return base.speedy_cross(self.macd.histo, self.zeros, False)
         return False

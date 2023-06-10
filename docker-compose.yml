@@ -176,6 +176,9 @@ services:
         ports:  
             - 8001:8888
         restart: on-failure
+        volumes:
+          - ./backend/app:/app
+          - ./celery-back-datas:/app/back_datas
 
     celery:
         profiles:
