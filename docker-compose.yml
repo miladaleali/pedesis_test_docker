@@ -66,6 +66,7 @@ services:
           - prod
           - logs
           - lab
+          - slim
         image: redis:alpine
         ports:
             - "6379:6379"
@@ -83,6 +84,7 @@ services:
           - prod
           - logs
           - lab
+          - slim
         image: rabbitmq
         ports:
             - "5672:5672"
@@ -99,6 +101,7 @@ services:
           - prod
           - logs
           - lab
+          - slim
         image: postgres:15.1-alpine
         ports:
             - "5432:5432"
@@ -120,6 +123,7 @@ services:
           - prod
           - logs
           - lab
+          - slim
         image: dpage/pgadmin4
         depends_on:
             db:
@@ -133,6 +137,7 @@ services:
         profiles:
           - prod
           - logs
+          - slim
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -185,6 +190,7 @@ services:
           - prod
           - logs
           - lab
+          - slim
         build:
             context: ./backend
             dockerfile: celeryworker.dockerfile
@@ -220,31 +226,32 @@ services:
         restart: always
 
     flower:
-      profiles:
-        - prod
-        - lab
-      build:
-          context: ./backend
-          dockerfile: celeryworker.dockerfile
-          target: flower
-          args:
-            GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
-            FLOWER_PORT: 5555
-      env_file:
-          - .env
-      environment:
-          - CELERY_BROKER_URL="amqp://rabbitmq:5672"
-          - CELERY_BROKER_TRANSPORT_URL="amqp://rabbitmq:5672"
-          - CELERY_RESULT_BACKEND="redis://redis_memory:6379/1"
-          - C_FORCE_ROOT=true
-      depends_on:
-          celery:
-            condition: service_healthy
-      ports:
-        - 5555:5555
-      volumes:
-        - ./flower-data:/data
-      command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
+        profiles:
+          - prod
+          - lab
+          - slim
+        build:
+            context: ./backend
+            dockerfile: celeryworker.dockerfile
+            target: flower
+            args:
+              GIT_TOKEN_PEDESIS: $GIT_TOKEN_PEDESIS
+              FLOWER_PORT: 5555
+        env_file:
+            - .env
+        environment:
+            - CELERY_BROKER_URL="amqp://rabbitmq:5672"
+            - CELERY_BROKER_TRANSPORT_URL="amqp://rabbitmq:5672"
+            - CELERY_RESULT_BACKEND="redis://redis_memory:6379/1"
+            - C_FORCE_ROOT=true
+        depends_on:
+            celery:
+              condition: service_healthy
+        ports:
+          - 5555:5555
+        volumes:
+          - ./flower-data:/data
+        command: celery -A pedesis.tasks_manager:manager --broker=amqp://rabbitmq:5672 flower --persisten=True --port=5555
 
     prometheus:
       profiles:
