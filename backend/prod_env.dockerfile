@@ -5,7 +5,7 @@ RUN python -m pip install --upgrade pip
 RUN pip install \
     structlog==22.3.0\
     gevent==22.10.2\ 
-    python-telegram-bot==20.3\
+    pyTelegramBotApi==4.12.0\
     factory-boy==3.2.1\
     Faker==17.0.0\
     greenlet==2.0.1\
