@@ -122,7 +122,6 @@ services:
         profiles:
           - prod
           - logs
-          - lab
           - slim
         image: dpage/pgadmin4
         depends_on:
