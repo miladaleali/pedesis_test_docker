@@ -183,6 +183,7 @@ services:
         volumes:
           - ./backend/app:/app
           - ./celery-back-datas:/app/back_datas
+          - ./notebook:/app/notebooks
 
     celery:
         profiles:
