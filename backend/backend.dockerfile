@@ -42,4 +42,9 @@ CMD bash /station-start.sh
 ######################## START NEW IMAGE: NOTEBOOK ##########################
 FROM base as notebook
 RUN pip install notebook
-CMD python -m notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+COPY ./app/lab-start.sh /lab-start.sh
+
+RUN chmod +x /lab-start.sh
+
+CMD bash /lab-start.sh && python -m notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
