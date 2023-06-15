@@ -67,4 +67,4 @@ RUN pip install flower
 ######################## START NEW IMAGE: BEAT ##########################
 FROM base as beat
 
-CMD celery -A pedesis.tasks_manager.manager beat -S redbeat.RedBeatSchedular -l INFO
+CMD celery -A pedesis.tasks_manager.manager beat -S redbeat.RedBeatScheduler -l INFO
