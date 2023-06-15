@@ -1,4 +1,8 @@
-from pedesis.conf.global_settings import BaseStationSettings
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+from pedesis.conf.global_settings import BaseStationSettings, DataBaseSetting
 
 
 class StationSettings(BaseStationSettings):
@@ -12,6 +16,13 @@ class StationSettings(BaseStationSettings):
     installed_brokers: list[str] = [
         'pedesis.components.broker.templates.okx',
     ]
+
+    installed_databases: dict = {
+        'default': DataBaseSetting(
+            controller='pedesis.db.controller.LiveDataBase', 
+            url=os.environ['NEON_DATABASE_URL']
+        )
+    }
 
     installed_data_sources: dict[str, str] = {
         'okx': 'pedesis.components.broker.templates.okx',
