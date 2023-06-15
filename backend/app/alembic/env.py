@@ -36,6 +36,10 @@ def get_url():
     db = os.getenv("POSTGRES_DB", "app")
     return f"postgresql://{user}:{password}@{server}/{db}"
 
+def get_neon_url():
+    url = os.environ['NEON_DATABASE_URL'].replace('postgres', 'postgresql')
+    return url
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
@@ -48,7 +52,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = get_url()
+    url = get_url() if os.environ['DB_SERVICE'] != 'neon' else get_neon_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
