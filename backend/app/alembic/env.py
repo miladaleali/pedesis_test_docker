@@ -37,7 +37,7 @@ def get_url():
     return f"postgresql://{user}:{password}@{server}/{db}"
 
 def get_neon_url():
-    url = os.environ['NEON_DATABASE_URL']
+    url = os.getenv('NEON_DATABASE_URL')
     return url
 
 def run_migrations_offline() -> None:
