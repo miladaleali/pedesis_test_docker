@@ -48,3 +48,23 @@ COPY ./app/lab-start.sh /lab-start.sh
 RUN chmod +x /lab-start.sh
 
 CMD bash /lab-start.sh && python -m notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+######################## START NEW IMAGE: WORKER ##########################
+FROM base as worker
+
+COPY ./app/worker-start.sh /worker-start.sh
+
+RUN chmod +x /worker-start.sh
+
+CMD bash /worker-start.sh
+
+######################## START NEW IMAGE: FLOWER ##########################
+FROM base as flower
+ARG FLOWER_PORT
+
+RUN pip install flower
+
+######################## START NEW IMAGE: BEAT ##########################
+FROM base as beat
+
+CMD celery -A pedesis.tasks_manager.manager beat -S redbeat.RedBeatSchedular -l INFO
