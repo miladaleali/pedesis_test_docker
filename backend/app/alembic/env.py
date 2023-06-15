@@ -52,7 +52,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = get_url() if os.environ['DB_SERVICE'] != 'neon' else get_neon_url()
+    url = get_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -72,7 +72,7 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url() if os.environ['DB_SERVICE'] != 'neon' else get_neon_url()
+    configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",

@@ -17,13 +17,6 @@ class StationSettings(BaseStationSettings):
         'pedesis.components.broker.templates.okx',
     ]
 
-    base_installed_databases: dict = {
-        'default': DataBaseSetting(
-            controller='pedesis.db.controller.LiveDataBase', 
-            url=os.environ['NEON_DATABASE_URL']
-        )
-    }
-
     installed_data_sources: dict[str, str] = {
         'okx': 'pedesis.components.broker.templates.okx',
     }
