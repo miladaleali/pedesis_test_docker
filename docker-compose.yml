@@ -125,7 +125,6 @@ services:
         command: >
           bash -c "
             chmod +x /backup_restore/backup.sh /backup_restore/restore.sh &&
-            /backup_restore/restore.sh &&
             docker-entrypoint.sh postgres
           "
 
