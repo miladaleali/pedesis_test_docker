@@ -28,13 +28,7 @@ class Logic(base.GeneratorLogicSetting):
                     slow=self.slow,
                     signal=self.signal
                 )
-                macd.rename(
-                    columns={
-                        f"MACD_{self.fast}_{self.slow}_{self.signal}": 'macd',
-                        f"MACDh_{self.fast}_{self.slow}_{self.signal}": 'histo',
-                        f"MACDs_{self.fast}_{self.slow}_{self.signal}": 'signal',
-                    }
-                )
+                macd.columns = ['macd', 'histo', 'signal']
                 return macd
             case 'trend':
                 return base.calculate_ema(datas, self.trend_source, self.trend_length)
