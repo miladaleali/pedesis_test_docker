@@ -25,6 +25,12 @@ class ScalpShortMacd(base.Generator):
         # datas
         self.main_data: base.pd.DataFrame = None
 
+    def next_data_telegram_msg(self) -> None:
+        main_data = f"Main Current Close: {self.main_data.close.iloc[-1]}\nMain Yesterday Close: {self.main_data.close.iloc[-2]}"
+        macd = f"MACD Current: {self.macd.iloc[-1]}\nMACD Yesterday: {self.macd.iloc[-2]}"
+        trend = f"Trend Current: {self.trend.iloc[-1]}\nTrend Yesterday: {self.trend.iloc[-2]}"
+        base.telegram_channel.send_message(f"Generator {self.settings.dbid} Info:\n{main_data}\n{macd}\n{trend}")
+
     def signal_logic(self) -> bool:
         if self.main_data.close.iloc[-1] < self.trend.iloc[-1]:
             return base.speedy_cross(self.macd.histo, self.zeros, False)

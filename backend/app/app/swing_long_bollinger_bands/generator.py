@@ -25,6 +25,12 @@ class SwingLongBollingerBands(base.Generator):
         # datas
         self.main_data: base.pd.DataFrame = None
 
+    def next_data_telegram_msg(self) -> None:
+        main_data = f"Main Current Close: {self.main_data.close.iloc[-1]}\nMain Yesterday Close: {self.main_data.close.iloc[-2]}"
+        bbs = f"Bollinger Bands Current: {self.bbs.iloc[-1]}\nBollinger Bands Yesterday: {self.bbs.iloc[-2]}"
+        trend = f"Trend Current: {self.trend.iloc[-1]}\nTrend Yesterday: {self.trend.iloc[-2]}"
+        base.telegram_channel.send_message(f"Generator {self.settings.dbid} Info:\n{main_data}\n{bbs}\n{trend}")
+
     def signal_logic(self) -> bool:
         if self.main_data.close.iloc[-1] > self.trend.iloc[-1]:
             if (
