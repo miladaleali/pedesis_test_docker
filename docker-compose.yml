@@ -6,7 +6,6 @@ services:
         profiles:
           - prod
           - logs
-          - stage
         container_name: es-node-01
         ports:
             - '9200:9200'
@@ -14,20 +13,19 @@ services:
         environment:
             - discovery.type=single-node
         # image: 'docker.elastic.co/elasticsearch/elasticsearch:7.17.0'
-        image: elasticsearch:7.17.0
+        image: elasticsearch:7.17.10
 
     kibana-01:
         profiles:
           - prod
           - logs
-          - stage
         container_name: kibana-01
         ports:
             - '5601:5601'
         environment:
             - 'ELASTICSEARCH_HOSTS=http://es-node-01:9200'
         # image: 'docker.elastic.co/kibana/kibana:7.17.0' 
-        image: kibana:7.17.0
+        image: kibana:7.17.10
         healthcheck:
             test: ["CMD", "curl", "-f", "kibana-01:5601"]
             interval: 50s
@@ -40,13 +38,12 @@ services:
         profiles:
           - prod
           - logs
-          - stage
         container_name: logstash-01
         volumes:
             - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro 
             - ./logstash/logstash.yaml:/usr/share/logstash/config/logstash.yml:ro 
         # image: 'docker.elastic.co/logstash/logstash:7.17.0'
-        image: logstash:7.17.0
+        image: logstash:7.17.10
         depends_on:   
              kibana-01:
                condition: service_healthy  
@@ -55,7 +52,6 @@ services:
         profiles:
           - prod
           - logs
-          - stage
         user: root
         container_name: filebeat-01
         command: --strict.perms=false
@@ -64,7 +60,7 @@ services:
             - /var/lib/docker/containers:/var/lib/docker/containers:ro
             - /var/run/docker.sock:/var/run/docker.sock:ro
         # image: 'docker.elastic.co/beats/filebeat:7.17.0' 
-        image: filebeat:7.17.0
+        image: filebeat:7.17.10
         depends_on:
              kibana-01:
                condition: service_healthy
@@ -76,7 +72,6 @@ services:
           - logs
           - lab
           - slim
-          - stage
         image: redis:alpine
         ports:
             - "6379:6379"
@@ -96,7 +91,6 @@ services:
           - logs
           - lab
           - slim
-          - stage
         image: rabbitmq
         ports:
             - "5672:5672"
@@ -115,7 +109,6 @@ services:
           - logs
           - lab
           - slim
-          - stage
         image: postgres:15.1-alpine
         ports:
             - "5432:5432"
@@ -145,7 +138,6 @@ services:
           - prod
           - logs
           - slim
-          - stage
         image: dpage/pgadmin4
         depends_on:
             db:
@@ -161,7 +153,6 @@ services:
           - prod
           - logs
           - slim
-          - stage
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -188,7 +179,7 @@ services:
         profiles:
           - prod
           - lab
-          - stage
+          - logs
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -218,7 +209,6 @@ services:
           - logs
           - lab
           - slim
-          - stage
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -260,7 +250,6 @@ services:
           - logs
           - lab
           - slim
-          - stage
         build:
             context: ./backend
             dockerfile: backend.dockerfile
@@ -289,7 +278,6 @@ services:
           - prod
           - lab
           - slim
-          - stage
         build:
             context: ./backend
             dockerfile: backend.dockerfile
