@@ -5,7 +5,7 @@ echo "Down Docker..."
 docker compose down --remove-orphans
 
 echo "Remove Volumes..."
-docker volume rm pedesis_test_docker_redis-data
+docker volume rm pedesis_redis-data
 
 echo "Remove Celery worker id..."
 sudo rm -r celery_files/
