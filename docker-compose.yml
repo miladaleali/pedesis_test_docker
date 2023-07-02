@@ -280,6 +280,7 @@ services:
           - prod
           - lab
           - slim
+          - logs
         build:
             context: ./backend
             dockerfile: backend.dockerfile
