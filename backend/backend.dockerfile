@@ -5,6 +5,7 @@ ARG GIT_TOKEN_PEDESIS
 WORKDIR /app/
 
 COPY ./app /app
+COPY ./debug /app/debug
 
 ENV PYTHONPATH=/app
 
