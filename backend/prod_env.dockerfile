@@ -22,4 +22,6 @@ RUN pip install \
     rich==13.0.1\
     websocket-client==1.5.0\
     zope.event==4.6\
-    zope.interface==5.5.2
+    zope.interface==5.5.2\
+    ccxt==4.0.31
+
