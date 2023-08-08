@@ -38,7 +38,7 @@ def get_orders_msg(orders: list) -> str:
             msg += f"\n\tFetch Order:\n\t\tEndpoint: {fo.endpoint}\n\t\tRequest: {fo.request}\n\t\tResponse: {fo.response}"
         msg += end_
     return msg
-    
+
 @app.command()
 def fetchone(position_id: int):
     typer.secho(f'Fetching Position {position_id}', fg='green')
