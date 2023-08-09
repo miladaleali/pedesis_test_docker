@@ -41,6 +41,7 @@ def get_orders_msg(orders: list) -> str:
 
 @app.command()
 def fetchone(position_id: int):
+    position_id = int(position_id)
     typer.secho(f'Fetching Position {position_id}', fg='green')
     pos = pos_model.get(id=position_id).get_pydantic_model()
 
