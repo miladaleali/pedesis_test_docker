@@ -4,10 +4,15 @@ from pedesis.shortcuts import get_model
 
 app = typer.Typer()
 pos_model = get_model('OpenPositionModel')
+arc_pos_model = get_model('ClosedPositionModel')
 
 @app.command()
 def fetchall():
-    typer.echo(pos_model.all(in_df=True))
+    live = input('Want Live Table: (y/n) ')
+    if live == 'y':
+        typer.echo(pos_model.all(in_df=True))
+    else:
+        typer.echo(arc_pos_model.all(in_df=True))
 
 def get_generic_orders_msg(orders: list) -> str:
     main_msg = ""
@@ -42,8 +47,13 @@ def get_orders_msg(orders: list) -> str:
 @app.command()
 def fetchone(position_id: int):
     position_id = int(position_id)
-    typer.secho(f'Fetching Position {position_id}', fg='green')
-    pos = pos_model.get(id=position_id).get_pydantic_model()
+    live = input('Want Live Table: (y/n) ')
+    if live == 'y':
+        typer.secho(f'Fetching Live Position {position_id}', fg='green')
+        pos = pos_model.get(id=position_id).get_pydantic_model()
+    else:
+        typer.secho(f'Fetching Archive Position {position_id}', fg='green')
+        pos = arc_pos_model.get(id=position_id).to_position()
 
     typer.secho('Contract Info:', fg=typer.colors.YELLOW)
     typer.echo(
