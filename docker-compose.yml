@@ -232,7 +232,7 @@ services:
             - POSTGRES_HOST=db
             - C_FORCE_ROOT=true
             - CELERY_BROKER_URL=amqp://rabbitmq:5672
-            - CELERY_RESULT_BACKEND=redis://redis_memory:6379/$REDIS_CELERY_DB
+            - CELERY_RESULT_BACKEND=redis://redis_memory:$REDIS_PORT/$REDIS_CELERY_DB
         ports:
             - 5679:5679
         volumes:
@@ -269,7 +269,7 @@ services:
             - POSTGRES_HOST=db
             - C_FORCE_ROOT=true
             - CELERY_BROKER_URL=amqp://rabbitmq:5672
-            - CELERY_RESULT_BACKEND=redis://redis_memory:6379/$REDIS_CELERY_DB
+            - CELERY_RESULT_BACKEND=redis://redis_memory:$REDIS_PORT/$REDIS_CELERY_DB
         volumes:
             - ./backup/ohlcv_datas:/app/back_datas
             # - ./celery_files:/app/celery_files
