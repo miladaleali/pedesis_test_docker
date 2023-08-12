@@ -1,4 +1,6 @@
+import os
 from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
+from redis import Redis
 
 from pedesis.logger import get_logger
 from pedesis.shortcuts import get_db, get_settings
@@ -21,6 +23,13 @@ def init() -> None:
     except Exception as e:
         logger.error(e)
         raise e
+
+    redis = Redis(
+        host=os.environ['REDIS_HOST'],
+        db=os.environ['REDIS_CELERY_DB'],
+        port=6379
+    )
+    redis.flushall()
 
 def main() -> None:
     logger.info("Initializing pedesis service")
