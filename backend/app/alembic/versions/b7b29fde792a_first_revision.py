@@ -90,6 +90,7 @@ def upgrade() -> None:
                     sa.Column('free_risk', sa.Float(), nullable=True),
                     sa.Column('total_open_position', sa.Integer(), nullable=True),
                     sa.Column('pnl', sa.Float(), nullable=True),
+                    sa.Column('suspend', sa.Integer(), nullable=True),
                     sa.ForeignKeyConstraint(['broker_id'], ['data_source.id'], onupdate='CASCADE', ondelete='CASCADE'),
                     sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id'),
