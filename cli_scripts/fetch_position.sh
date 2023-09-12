@@ -5,7 +5,7 @@ set -e
 echo "What command do you want run?"
 read command_
 
-if [ "$command_" = "fetchone"]; then
+if [ "$command_" = "fetchone" ]; then
     # Ask which position
     echo "Give Position id:"
     read position_id

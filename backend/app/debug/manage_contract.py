@@ -19,14 +19,13 @@ def convert_period_to_timestamp(period: int) -> float:
     day_timestamp = 24 * 60 * 60
     return now + (period * day_timestamp)
 
-
 def create_contract(len_contract: int = 1):
     from pedesis.utils import make_dtime_timestamp
 
     username = 'miladaleali'
     password = '123456'
     broker_name = 'okx'
-    amount = 40_000 if len_contract == 1 else 60_000
+    amount = 40_000
     risk_pct = 50
     period = 360
 
